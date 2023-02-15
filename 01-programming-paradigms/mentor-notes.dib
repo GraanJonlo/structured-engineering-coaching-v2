@@ -1,0 +1,247 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp","languageName":"C#","aliases":["c#","C#"]},{"name":"vscode","aliases":["frontend"],"languageName":null},{"name":"sql","languageName":"SQL","aliases":[]},{"name":"javascript","languageName":"JavaScript","aliases":["js"]}]}}
+
+#!markdown
+
+# Programing paradigm examples
+
+#!markdown
+
+## Hello world in assembly
+
+```assembly
+    global _main
+    extern  _GetStdHandle@4
+    extern  _WriteFile@20
+    extern  _ExitProcess@4
+
+    section .text
+_main:
+    ; DWORD  bytes;    
+    mov     ebp, esp
+    sub     esp, 4
+
+    ; hStdOut = GetstdHandle( STD_OUTPUT_HANDLE)
+    push    -11
+    call    _GetStdHandle@4
+    mov     ebx, eax    
+
+    ; WriteFile( hstdOut, message, length(message), &bytes, 0);
+    push    0
+    lea     eax, [ebp-4]
+    push    eax
+    push    (message_end - message)
+    push    message
+    push    ebx
+    call    _WriteFile@20
+
+    ; ExitProcess(0)
+    push    0
+    call    _ExitProcess@4
+
+    ; never here
+    hlt
+message:
+    db      'Hello, World', 10
+message_end:
+```
+
+#!markdown
+
+## Structured
+
+Demonstrates a couple of structured principles: sequences and selections. Doesn't show loops(for and while) but they're easy to explain.
+
+#!javascript
+
+const accountKind = 'savings';
+const accountValue = 500;
+let interest = 0;
+
+if (accountKind === 'savings') {
+    interest = accountValue * 0.05;
+} else if (accountKind === 'current') {
+    interest = accountValue * 0.02;
+}
+
+const formattedInterest = `You've earned ${interest} pence interest`
+
+console.log(formattedInterest);
+
+#!markdown
+
+## Procedural
+
+Demonstrates the procedural principle of re-usable procedures
+
+#!javascript
+
+function calculateInterest(account) {
+    if (account.kind === 'savings') {
+        return account.value * 0.05;
+    } else if (account.kind === 'current') {
+        return account.value * 0.02;
+    }
+}
+
+function tellMeMyInterest(account) {
+    return `You've earned ${calculateInterest(account)} pence interest`
+}
+
+let myAccount =
+    {
+        kind: 'savings',
+        value: 500
+    };
+
+console.log(tellMeMyInterest(myAccount));
+
+#!markdown
+
+## Object-oriented
+
+The first example is written in C# but shows no OO. It is mostly procedural. Just because you're using an "OO" language it doesn't automatically make your code "OO".
+
+The second example demonstrates some OO concepts.
+
+#!csharp
+
+public class Account {
+    public int Value { get; set; }
+    public string Kind { get; set; }
+}
+
+double CalculateInterest(Account account) {
+    if (account.Kind == "current") {
+        return account.Value * 0.02;
+    } else if (account.Kind == "savings") {
+        return account.Value * 0.05;
+    } else {
+        throw new Exception("Unrecognised account type");
+    }
+}
+
+string TellMeMyInterest(Account account) =>
+        $"You've earned {CalculateInterest(account)} pence interest";
+
+Account myAccount = new() {
+    Kind = "savings",
+    Value = 500
+};
+
+Console.WriteLine(TellMeMyInterest(myAccount));
+
+#!csharp
+
+public abstract class Account {
+    protected int _value;
+
+    protected Account(int initialAmount) {
+        _value = initialAmount;
+    }
+
+    public abstract double CalculateInterest();
+
+    public string TellMeMyInterest() =>
+        $"You've earned {CalculateInterest()} pence interest";
+}
+
+public sealed class Current : Account {
+    public Current(int initialAmount) : base(initialAmount) {}
+
+    public override double CalculateInterest() => _value * 0.02;
+}
+
+public sealed class Savings : Account {
+    public Savings(int initialAmount) : base(initialAmount) {}
+
+    public override double CalculateInterest() => _value * 0.05;
+}
+
+Account myAccount = new Savings(500);
+
+Console.WriteLine(myAccount.TellMeMyInterest());
+
+#!markdown
+
+## Functional
+
+Like the previous section, the first example is written in a procedural style whilst the second is more functional.
+
+This section will probably need some explaining as most people are only used to languages from the C family whereas F# is from the ML family. An example of the same code in Scheme is also provided to show the Lisp family.
+
+#!fsharp
+
+type Account =
+| Current of int
+| Savings of int
+
+let calculateInterest account =
+    match account with
+    | Current value -> (double value) * 0.02
+    | Savings value -> (double value) * 0.05
+
+let tellMeMyInterest account =
+    sprintf "You've earned %.0f pence interest" (calculateInterest account)
+
+let myAccount = Savings 500
+
+Console.WriteLine(tellMeMyInterest myAccount)
+
+#!fsharp
+
+module Infrastructure =
+    // Wrapper around C# interop to make it more F#-ish
+    let writeLine (value: string) =
+        Console.WriteLine(value)
+
+open Infrastructure
+
+// Ignore above this comment
+
+type Account =
+| Current of int
+| Savings of int
+
+module Account =
+    let calculateInterest =
+        function
+        | Current value -> (double value) * 0.02
+        | Savings value -> (double value) * 0.05
+
+    let tellMeMyInterest =
+        calculateInterest >> sprintf "You've earned %.0f pence interest"
+
+Savings 500
+|> Account.tellMeMyInterest
+|> writeLine
+
+#!markdown
+
+Don't know if this is 100% correct. I wrote it with ChatGPT's help and haven't got around to setting up Scheme locally yet 😅
+
+```scheme
+(define (calculate-interest account-info)
+  (let ((amount (cdr (assoc 'amount account-info)))
+        (account-type (cdr (assoc 'account-type account-info))))
+    (cond
+     ((eq? account-type 'savings) (* amount 0.05))
+     ((eq? account-type 'current) (* amount 0.02))
+     (else "Invalid account type. Please specify 'savings' or 'current'."))))
+
+(define (generate-message account-info calculate-interest-fn)
+  (let ((interest (calculate-interest-fn account-info)))
+    (string-append "You've earned " (number->string interest) " pence interest")))
+
+(define account '( (amount . 500) (account-type . savings)))
+
+(generate-message account calculate-interest)
+
+```
+
+#!markdown
+
+## Conclusion
+
+Remind the student that these are all abstractions to serve humans and how, under ideal circumstances, all the programming languages would produce identical machine code. I.E. abstractions, types, information hiding etc do not really exist. We use programming languages to make our and future devs lifes easier.

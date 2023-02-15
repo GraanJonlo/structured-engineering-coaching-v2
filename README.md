@@ -1,1 +1,1 @@
-# structured-engineering-coaching-v2
+# Structured Engineering Coaching
