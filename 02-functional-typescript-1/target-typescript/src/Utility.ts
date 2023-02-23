@@ -7,3 +7,13 @@ export const compose: Compose =
     (fn1, fn2) =>
         value =>
             fn2(fn1(value));
+
+type Partial =
+    <T1, T2 extends unknown[], U>(fn: (arg: T1, ...remaining: T2) => U, toApply: T1) =>
+        (...remaining: T2) =>
+            U;
+
+export const partial: Partial =
+    (fn, toApply) => {
+        return (...remainingArgs) => fn(toApply, ...remainingArgs)
+    }
