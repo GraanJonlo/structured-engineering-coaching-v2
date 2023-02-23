@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { Account } from "./Domain";
+import { Account } from "./domain";
 
 describe("Account tests", () => {
     it("Calculates savings interest", () => {

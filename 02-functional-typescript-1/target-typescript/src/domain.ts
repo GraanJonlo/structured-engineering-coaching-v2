@@ -1,4 +1,4 @@
-import { compose } from "./Utility";
+import { compose } from "./utility";
 
 export namespace Account {
     type Current = { readonly kind: 'current', readonly value: number };
