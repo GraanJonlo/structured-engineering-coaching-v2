@@ -1,0 +1,375 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp","languageName":"C#","aliases":["c#","C#"]},{"name":"pwsh","languageName":"PowerShell","aliases":["powershell"]},{"name":"vscode","aliases":["frontend"]}]}}
+
+#!markdown
+
+# Code examples
+
+#!markdown
+
+Number and functions that act on a number
+
+```typescript
+const aNumber = 5;
+
+const square = (x: number) => x * x;
+const cube = (x: number) => x * x * x;
+```
+
+#!markdown
+
+Number and functions lifted into elevated world of collections
+
+```typescript
+const anArray = [5];
+
+const squareCollection =
+    (arr: number[]) => {
+        let result: number[] = [];
+
+        arr.forEach(x => {
+            result.push(x * x);
+        });
+
+        return result;
+    };
+
+const cubeCollection =
+    (arr: number[]) => {
+        let result: number[] = [];
+
+        arr.forEach(x => {
+            result.push(x * x * x);
+        });
+
+        return result;
+    };
+```
+
+#!markdown
+
+Hopefully can see that this can be deduped
+
+```typescript
+const lift =
+    (fn: (x: number) => number, arr: number[]) => {
+        let result: number[] = [];
+
+        arr.forEach(x => {
+            result.push(fn(x));
+        });
+
+        return result;
+    };
+```
+
+#!markdown
+
+generified
+
+```typescript
+const lift =
+    <T>(fn: (x: T) => T, arr: T[]) => {
+        let result: T[] = [];
+
+        arr.forEach(x => {
+            result.push(fn(x));
+        });
+
+        return result;
+    };
+```
+
+#!markdown
+
+and curried
+
+```typescript
+const lift =
+    <T, U>(fn: (x: T) => U) => {
+        return (arr: T[]) => {
+            let result: U[] = [];
+
+            arr.forEach(x => {
+                result.push(fn(x));
+            });
+
+            return result;
+        };
+    };
+
+const squareCollection = lift(square);
+const cubeCollection = lift(cube);
+```
+
+#!markdown
+
+Similar LiftN functions can be defined
+
+```typescript
+const add = (x: number, y: number) => x + y;
+
+const lift2 =
+    <T1, T2, U>(fn: (x: T1, y: T2) => U) => {
+        return (arr1: T1[], arr2: T2[]) => {
+            let result: U[] = [];
+
+            let length = Math.min(arr1.length, arr2.length);
+
+            for (let i = 0; i < length; i++) {
+                result.push(fn(arr1[i], arr2[i]));
+            }
+
+            return result;
+        };
+    };
+
+const addCollections = lift2(add);
+```
+
+Lift for a single parameter function is sometimes just called `map`
+
+#!markdown
+
+And we can work with functions that have been lifted too. E.G. An array of
+functions that work on numbers
+
+```typescript
+const apply =
+    <T, U>(fns: ((x: T) => U)[]) => {
+        return (arr: T[]) => {
+            let result: U[] = [];
+
+            fns.forEach(fn => {
+                arr.forEach(element => {
+                    result.push(fn(element));
+                });
+            });
+
+            return result;
+        };
+    };
+
+const squareAndCubedCollections = apply([square, cube]);
+
+squareAndCubedCollections([1, 2, 3]); // [1, 4, 9, 1, 8, 27]
+```
+
+#!markdown
+
+Collect that into a namespace with Type aliases
+
+```typescript
+const square = (x: number) => x * x;
+const cube = (x: number) => x * x * x;
+const add = (x: number, y: number) => x + y;
+
+namespace AndyArray {
+    type Lift =
+        <T, U>(fn: (arg: T) => U) =>
+            (arr: T[]) => U[];
+
+    type Map = Lift;
+
+    type Lift2 =
+        <T1, T2, U>(fn: (arg1: T1, arg2: T2) => U) =>
+            (arr1: T1[], arr2: T2[]) => U[];
+
+    type Lift3 =
+        <T1, T2, T3, U>(fn: (arg1: T1, arg2: T2, arg3: T3) => U) =>
+            (arr1: T1[], arr2: T2[], arr3: T3[]) => U[];
+
+    type Apply =
+        <T, U>(fns: ((arg: T) => U)[]) =>
+            (arr: T[]) => U[];
+
+    export const lift: Lift =
+        (fn) => {
+            return (arr) => {
+                let result = [];
+
+                arr.forEach(element => {
+                    result.push(fn(element));
+                });
+
+                return result;
+            };
+        };
+
+    export const map: Map = lift;
+
+    export const lift2: Lift2 =
+        (fn) => {
+            return (arr1, arr2) => {
+                let result = [];
+
+                let length = Math.min(arr1.length, arr2.length);
+                for (let i = 0; i < length; i++) {
+                    result.push(fn(arr1[i], arr2[i]));
+                }
+
+                return result;
+            };
+        };
+
+    export const lift3: Lift3 =
+        (fn) => {
+            return (arr1, arr2, arr3) => {
+                let result = [];
+
+                let length = Math.min(arr1.length, arr2.length, arr3.length);
+                for (let i = 0; i < length; i++) {
+                    result.push(fn(arr1[i], arr2[i], arr3[i]));
+                }
+
+                return result;
+            };
+        };
+
+    export const apply: Apply =
+        <U>(fns) => {
+            return (arr) => {
+                let result: U[] = [];
+
+                fns.forEach(fn => {
+                    arr.forEach(element => {
+                        result.push(fn(element));
+                    });
+                });
+
+                return result;
+            }
+        };
+}
+
+const squareCollection = AndyArray.lift(square);
+const cubeCollection = AndyArray.lift(cube);
+
+const addCollections = AndyArray.lift2(add);
+
+const squareAndCubedCollections = AndyArray.apply([square, cube]);
+
+squareAndCubedCollections([1, 2, 3]); // [1, 4, 9, 1, 8, 27]
+```
+
+#!markdown
+
+Consider the following type signature for getting a user record out of a
+database
+
+```typescript
+type User = { id: number, firstName: string, lastName: string };
+
+type GetUser = (userId: number) => User;
+```
+
+#!markdown
+
+Seems reasonable but what about if the user doesn't exist
+
+```typescript
+const fakeGetUser: GetUser =
+    (userId) => {
+        if (userId === 1234) {
+            return { id: userId, firstName: 'Jeff', lastName: 'JeffetyJeff' };
+        } else {
+            return null; // ???
+        }
+    };
+
+const myUser = fakeGetUser(0);
+
+const getFirstName =
+    (user: User) => {
+        if (user !== null) { // Urgh
+            return user.firstName;
+        } else {
+            return null; // Urgh
+        }
+    };
+```
+
+Our type signature is now a lie. It doesn't always return a user it might return
+null. Or should we error? No that's also a secret return type. And it's got to
+be dealt with by callers even though it's not obvious.
+
+#!markdown
+
+Let's catch the fact that it may or may not return something into a tagged union
+
+```typescript
+type Option<T> =
+    | { readonly tag: 'some'; readonly value: T }
+    | { readonly tag: 'none' };
+
+namespace Option {
+    export function some<T>(value: T): Option<T> {
+        return { tag: 'some', value: value };
+    }
+
+    export function none<T>(): Option<T> {
+        return { tag: 'none' };
+    }
+}
+
+type User = { id: number, firstName: string, lastName: string };
+
+type GetUser = (userId: number) => Option<User>;
+
+const fakeGetUser: GetUser =
+    (userId) => {
+        if (userId === 1234) {
+            return Option.some({ id: userId, firstName: 'Jeff', lastName: 'JeffetyJeff' });
+        } else {
+            return Option.none();
+        }
+    };
+
+const getFirstName =
+    (user: Option<User>) => {
+        switch (user.tag) { // Still urgh
+            case 'none':
+                return Option.none();
+            case 'some':
+                return Option.some(user.value.firstName);
+        }
+    };
+```
+
+Is that better? Wait didn't we have something for this?
+
+#!markdown
+
+Oh yes
+
+```typescript
+namespace Option {
+    type Lift =
+        <T, U>(fn: (arg: T) => U) =>
+            (arg: Option<T>) =>
+                Option<U>;
+
+    type Map = Lift;
+
+    export const lift: Lift =
+    (fn) => {
+        return (arg) => {
+            switch (arg.tag) {
+                case 'none':
+                    return none();
+                case 'some':
+                    return some(fn(arg.value));
+            }
+        };
+    };
+
+    export const map: Map = lift;
+}
+
+const getFirstName = Option.lift((user:User) => user.firstName);
+```
+
+#!markdown
+
+Finish by showing test cases for outstanding functions: lift2 and apply
