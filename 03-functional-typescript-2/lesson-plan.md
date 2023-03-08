@@ -39,11 +39,12 @@ By the end of this lesson, the student will be able to:
 
 - Demonstrate that equivalent functions exist for various numbers of parameters
 - Discuss sensible strategies for when collection sizes differ
-- Discuss alternative names for `lift` such as `map` and `select`
+- Discuss alternative names for `lift` such as `map` and `Select`
 
 ### Apply (10 minutes)
 
 - Demonstrate working with elevated functions
+- Discuss alternative names for `apply` such as `flatMap` and `SelectMany`
 
 ### Option/ Maybe (10 minutes)
 
