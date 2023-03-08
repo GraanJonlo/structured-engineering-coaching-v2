@@ -1,12 +1,14 @@
 #!meta
 
-{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp","languageName":"C#","aliases":["c#","C#"]},{"name":"pwsh","languageName":"PowerShell","aliases":["powershell"]},{"name":"vscode","aliases":["frontend"]}]}}
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp","languageName":"C#","aliases":["c#","C#"]},{"name":"pwsh","languageName":"PowerShell","aliases":["powershell"]},{"name":"vscode","aliases":["frontend"],"languageName":null}]}}
 
 #!markdown
 
 # Code examples
 
 #!markdown
+
+## Starting point
 
 Number and functions that act on a number
 
@@ -18,6 +20,8 @@ const cube = (x: number) => x * x * x;
 ```
 
 #!markdown
+
+## The elevated type, array
 
 Number and functions lifted into elevated world of collections
 
@@ -49,41 +53,9 @@ const cubeCollection =
 
 #!markdown
 
-Hopefully can see that this can be deduped
+## The lift function
 
-```typescript
-const lift =
-    (fn: (x: number) => number, arr: number[]) => {
-        let result: number[] = [];
-
-        arr.forEach(x => {
-            result.push(fn(x));
-        });
-
-        return result;
-    };
-```
-
-#!markdown
-
-generified
-
-```typescript
-const lift =
-    <T>(fn: (x: T) => T, arr: T[]) => {
-        let result: T[] = [];
-
-        arr.forEach(x => {
-            result.push(fn(x));
-        });
-
-        return result;
-    };
-```
-
-#!markdown
-
-and curried
+Deduped generified and curried into the `lift` function
 
 ```typescript
 const lift =
@@ -105,11 +77,11 @@ const cubeCollection = lift(cube);
 
 #!markdown
 
+## The liftN functions
+
 Similar LiftN functions can be defined
 
 ```typescript
-const add = (x: number, y: number) => x + y;
-
 const lift2 =
     <T1, T2, U>(fn: (x: T1, y: T2) => U) => {
         return (arr1: T1[], arr2: T2[]) => {
@@ -125,15 +97,31 @@ const lift2 =
         };
     };
 
+const lift3 =
+    <T1, T2, T3, U>(fn: (x: T1, y: T2, z: T3) => U) => {
+        return (arr1: T1[], arr2: T2[], arr3: T3[]) => {
+            let result: U[] = [];
+
+            let length = Math.min(arr1.length, arr2.length, arr3.length);
+
+            for (let i = 0; i < length; i++) {
+                result.push(fn(arr1[i], arr2[i], arr3[i]));
+            }
+
+            return result;
+        };
+    };
+
+const add = (x: number, y: number) => x + y;
+
 const addCollections = lift2(add);
 ```
 
-Lift for a single parameter function is sometimes just called `map`
-
 #!markdown
 
-And we can work with functions that have been lifted too. E.G. An array of
-functions that work on numbers
+## Working with functions that have been elevated
+
+E.G. An array of functions that work on numbers
 
 ```typescript
 const apply =
@@ -255,20 +243,13 @@ squareAndCubedCollections([1, 2, 3]); // [1, 4, 9, 1, 8, 27]
 
 #!markdown
 
-Consider the following type signature for getting a user record out of a
-database
+## The problems with null
 
 ```typescript
 type User = { id: number, firstName: string, lastName: string };
 
 type GetUser = (userId: number) => User;
-```
 
-#!markdown
-
-Seems reasonable but what about if the user doesn't exist
-
-```typescript
 const fakeGetUser: GetUser =
     (userId) => {
         if (userId === 1234) {
@@ -290,20 +271,32 @@ const getFirstName =
     };
 ```
 
-Our type signature is now a lie. It doesn't always return a user it might return
-null. Or should we error? No that's also a secret return type. And it's got to
-be dealt with by callers even though it's not obvious.
-
 #!markdown
 
-Let's catch the fact that it may or may not return something into a tagged union
+## Option
 
 ```typescript
-type Option<T> =
+export type Option<T> =
     | { readonly tag: 'some'; readonly value: T }
     | { readonly tag: 'none' };
 
-namespace Option {
+export namespace Option {
+    type Lift =
+        <T, U>(fn: (arg: T) => U) =>
+            (arg: Option<T>) =>
+                Option<U>;
+
+    type Map = Lift;
+
+    type Lift2 =
+        <T1, T2, U>(fn: (arg1: T1, arg2: T2) => U) =>
+            (arg1: Option<T1>, arg2: Option<T2>) =>
+                Option<U>;
+
+    type Apply =
+        <T, U>(fn: Option<((arg: T) => U)>) =>
+            (arr: Option<T>) => Option<U>;
+
     export function some<T>(value: T): Option<T> {
         return { tag: 'some', value: value };
     }
@@ -311,6 +304,54 @@ namespace Option {
     export function none<T>(): Option<T> {
         return { tag: 'none' };
     }
+
+    export const lift: Lift =
+    (fn) => {
+        return (arg) => {
+            switch (arg.tag) {
+                case 'none':
+                    return none();
+                case 'some':
+                    return some(fn(arg.value));
+            }
+        };
+    };
+
+    export const map: Map = lift;
+
+    export const lift2: Lift2 =
+        (fn) => {
+            return (arg1, arg2) => {
+                switch (arg1.tag) {
+                    case 'none':
+                        return none();
+                    case 'some':
+                        switch (arg2.tag) {
+                            case 'none':
+                                return none();
+                            case 'some':
+                                return some(fn(arg1.value, arg2.value));
+                        }
+                }
+            };
+        };
+
+    export const apply: Apply =
+        (fn) => {
+            return (arg) => {
+                switch (fn.tag) {
+                    case 'none':
+                        return none();
+                    case 'some':
+                        switch (arg.tag) {
+                            case 'none':
+                                return none();
+                            case 'some':
+                                return Option.some(fn.value(arg.value));
+                        }
+                }
+            };
+        };
 }
 
 type User = { id: number, firstName: string, lastName: string };
@@ -336,40 +377,3 @@ const getFirstName =
         }
     };
 ```
-
-Is that better? Wait didn't we have something for this?
-
-#!markdown
-
-Oh yes
-
-```typescript
-namespace Option {
-    type Lift =
-        <T, U>(fn: (arg: T) => U) =>
-            (arg: Option<T>) =>
-                Option<U>;
-
-    type Map = Lift;
-
-    export const lift: Lift =
-    (fn) => {
-        return (arg) => {
-            switch (arg.tag) {
-                case 'none':
-                    return none();
-                case 'some':
-                    return some(fn(arg.value));
-            }
-        };
-    };
-
-    export const map: Map = lift;
-}
-
-const getFirstName = Option.lift((user:User) => user.firstName);
-```
-
-#!markdown
-
-Finish by showing test cases for outstanding functions: lift2 and apply
