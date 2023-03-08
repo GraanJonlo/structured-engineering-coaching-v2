@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 
 function calculateInterest(account) {
     if (account.kind === 'savings') {
-        return account.value * 0.05;
+        return account.balance * 0.05;
     } else if (account.kind === 'current') {
-        return account.value * 0.02;
+        return account.balance * 0.02;
     }
 }
 
@@ -22,7 +22,7 @@ describe("Account tests", () => {
         const myAccount =
         {
             kind: "savings",
-            value: 500
+            balance: 500
         };
 
         const result = calculateInterest(myAccount);

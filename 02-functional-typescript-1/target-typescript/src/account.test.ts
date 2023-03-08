@@ -4,7 +4,7 @@ import { Account } from "./domain";
 
 describe("Account tests", () => {
     it("Calculates savings interest", () => {
-        const myAccount = Account.createSavings(500);
+        const myAccount = Account.savings(500);
 
         const result = Account.calculateInterest(myAccount);
         const expected = 25;
@@ -13,7 +13,7 @@ describe("Account tests", () => {
     });
 
     it("Formats savings interest correctly", () => {
-        const myAccount = Account.createSavings(500);
+        const myAccount = Account.savings(500);
 
         const result = Account.tellMeMyInterest(myAccount);
         const expected = "You've earned 25 pence interest";
