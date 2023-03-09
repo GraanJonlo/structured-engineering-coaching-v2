@@ -2,7 +2,8 @@ export namespace AndyArray {
     // Map is sometimes called lift
     type Lift =
         <T, U>(fn: (arg: T) => U) =>
-            (arr: T[]) => U[];
+            (arr: T[]) =>
+                U[];
 
     // Lift is sometimes called Map
     type Map = Lift;
@@ -10,16 +11,19 @@ export namespace AndyArray {
     // LiftN can be used to lift functions with multiple arguments
     type Lift2 =
         <T1, T2, U>(fn: (arg1: T1, arg2: T2) => U) =>
-            (arr1: T1[], arr2: T2[]) => U[];
+            (arr1: T1[], arr2: T2[]) =>
+                U[];
 
     type Lift3 =
         <T1, T2, T3, U>(fn: (arg1: T1, arg2: T2, arg3: T3) => U) =>
-            (arr1: T1[], arr2: T2[], arr3: T3[]) => U[];
+            (arr1: T1[], arr2: T2[], arr3: T3[]) =>
+                U[];
 
     // Apply for when the function is also elevated E.G. An array of functions
     type Apply =
         <T, U>(fns: ((arg: T) => U)[]) =>
-            (arr: T[]) => U[];
+            (arr: T[]) =>
+                U[];
 
     export const lift: Lift =
         (fn) => {
@@ -110,16 +114,16 @@ export namespace Option {
     }
 
     export const lift: Lift =
-    (fn) => {
-        return (arg) => {
-            switch (arg.tag) {
-                case 'none':
-                    return none();
-                case 'some':
-                    return some(fn(arg.value));
-            }
+        (fn) => {
+            return (arg) => {
+                switch (arg.tag) {
+                    case 'none':
+                        return none();
+                    case 'some':
+                        return some(fn(arg.value));
+                }
+            };
         };
-    };
 
     export const map: Map = lift;
 

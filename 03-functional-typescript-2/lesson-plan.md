@@ -8,6 +8,8 @@ Applying functional programming to TypeScript. Elevated types.
 
 By the end of this lesson, the student will be able to:
 
+- Explain the idea of elevated types and their properties
+
 ## Materials
 
 - VS Code or other IDE
@@ -19,13 +21,14 @@ By the end of this lesson, the student will be able to:
 ### Introduction (5 minutes)
 
 - Recap TypeScript syntax
+- Recap tagged unions
 - Introduce intial TypeScript code
 - Explain the lesson objective
 
 ### Elevated types (10 minutes)
 
 - Introduce the idea of elevated types and their various names such as augmented, wrapped and monadic types
-- Differentiate from design patterns by explaining that this in an example of inherent properties rather than a design choice
+- Differentiate from design patterns by explaining that this in an example of inherent properties rather than a design choice and therefore elevated types are an abstraction
 - Give arrays as an example of an elevated type
 
 ### Lift (10 minutes)

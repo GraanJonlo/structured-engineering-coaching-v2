@@ -38,7 +38,7 @@ describe.each([
     [Option.none(), Option.some(3), Option.none()],
     [Option.some(square), Option.none(), Option.none()],
     [Option.some(square), Option.some(3), Option.some(9)]
-])("apply", (fn: Option<(n:number) => number>, arg: Option<number>, expected) => {
+])("apply", (fn: Option<(n: number) => number>, arg: Option<number>, expected) => {
     it("does the thing", () => {
         const liftedFunction = Option.apply(fn);
 
