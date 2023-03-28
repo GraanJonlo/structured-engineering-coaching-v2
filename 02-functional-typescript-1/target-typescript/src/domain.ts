@@ -17,7 +17,7 @@ export namespace Account {
     }
 
     export const calculateInterest: CalculateInterest =
-        (account: Account) => {
+        (account) => {
             switch (account.tag) {
                 case "current":
                     if (account.balance < 0) {
@@ -31,7 +31,7 @@ export namespace Account {
         };
 
     function formatInterest(pence: number) {
-        return `You've earned ${pence} pence interest`
+        return `You've earned ${pence} pence interest`;
     }
 
     export const tellMeMyInterest: TellMeMyInterest =
