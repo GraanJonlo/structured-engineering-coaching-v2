@@ -1,8 +1,5 @@
 import { Result } from "./utility";
 
-export const removeWhiteSpace =
-    Result.map((text: string) => text.replace(/\s+/g, ""));
-
 export function containsOnlyNumbers(text: string): Result<string> {
     if (/^\d+$/.test(text)) {
         return Result.ok(text);

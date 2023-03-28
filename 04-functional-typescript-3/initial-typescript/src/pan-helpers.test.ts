@@ -1,14 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { removeWhiteSpace, containsOnlyNumbers, textStartsWithAnyRange, luhnCheck } from "./pan-helpers";
+import { containsOnlyNumbers, textStartsWithAnyRange, luhnCheck } from "./pan-helpers";
 
 describe("utility functions", () => {
-    it("should remove white space", () => {
-        const result = removeWhiteSpace(" Hello, World! ");
-
-        expect(result).eq("Hello,World!");
-    });
-
     it("should be true when only numbers", () => {
         const result = containsOnlyNumbers("1234567890");
 

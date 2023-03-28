@@ -5,12 +5,21 @@ import { Option } from "./utility";
 const square = (x: number) => x * x;
 const add = (x: number, y: number) => x + y;
 
+const mustBeEven: (x: number) => Option<string> =
+    (x) => {
+        if (x % 2 === 0) {
+            return Option.some('even');
+        } else {
+            return Option.none();
+        }
+    };
+
 describe.each([
     [Option.none(), Option.none()],
     [Option.some(2), Option.some(4)]
-])("map/ lift", (arg: Option<number>, expected: Option<number>) => {
+])("lift", (arg: Option<number>, expected: Option<number>) => {
     it("does the thing", () => {
-        const liftedFunction = Option.map(square);
+        const liftedFunction = Option.lift(square);
 
         const result = liftedFunction(arg);
 
@@ -45,5 +54,25 @@ describe.each([
         const result = liftedFunction(arg);
 
         expect(result).toStrictEqual(expected);
+    });
+});
+
+describe.each([2, 4, 6])("bind", (evenNumber: number) => {
+    it("binds ok", () => {
+        const liftedFunction = Option.bind(mustBeEven);
+
+        const result = liftedFunction(Option.some(evenNumber));
+
+        expect(result).toStrictEqual(Option.some('even'));
+    });
+});
+
+describe.each([1, 3, 5])("bind", (oddNumber: number) => {
+    it("binds error", () => {
+        const liftedFunction = Option.bind(mustBeEven);
+
+        const result = liftedFunction(Option.some(oddNumber));
+
+        expect(result).toStrictEqual(Option.none());
     });
 });

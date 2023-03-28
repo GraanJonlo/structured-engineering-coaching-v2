@@ -37,8 +37,6 @@ export namespace Option {
             (arg: Option<T>) =>
                 Option<U>;
 
-    type Map = Lift;
-
     type Lift2 =
         <T1, T2, U>(fn: (arg1: T1, arg2: T2) => U) =>
             (arg1: Option<T1>, arg2: Option<T2>) =>
@@ -47,6 +45,11 @@ export namespace Option {
     type Apply =
         <T, U>(fn: Option<((arg: T) => U)>) =>
             (arr: Option<T>) => Option<U>;
+
+    type Bind =
+        <T, U>(fn: (arg: T) => Option<U>) =>
+            (arg: Option<T>) =>
+                Option<U>
 
     export function some<T>(value: T): Option<T> {
         return { tag: 'some', value: value };
@@ -68,8 +71,6 @@ export namespace Option {
             };
         };
 
-    export const map: Map = lift;
-
     export const lift2: Lift2 =
         (fn) => {
             return (arg1, arg2) => {
@@ -88,6 +89,18 @@ export namespace Option {
                     return none();
                 } else {
                     return Option.some(fn.value(arg.value));
+                }
+            };
+        };
+
+    export const bind: Bind =
+        (fn) => {
+            return (arg) => {
+                switch (arg.tag) {
+                    case 'none':
+                        return arg;
+                    case 'some':
+                        return fn(arg.value);
                 }
             };
         };
@@ -118,7 +131,12 @@ export namespace Result {
     type Bind =
         <T, U>(fn: (arg: T) => Result<U>) =>
             (arg: Result<T>) =>
-                Result<U>
+                Result<U>;
+
+    type BindAll =
+        <T>(fn: ((arg: T) => Result<T>)[]) =>
+            (arg: T) =>
+                Result<T>;
 
     export function ok<T>(value: T): Result<T> {
         return { tag: 'ok', value: value };
@@ -179,4 +197,8 @@ export namespace Result {
                 }
             };
         };
+
+    export const bindAll: BindAll =
+        (fns) =>
+            fns.reduce((agg, cur, __idx, _arr) => compose(agg, Result.bind(cur)));
 };

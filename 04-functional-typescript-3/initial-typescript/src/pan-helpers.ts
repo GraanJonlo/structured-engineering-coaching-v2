@@ -1,7 +1,3 @@
-export function removeWhiteSpace(text: string) {
-    return text.replace(/\s+/g, "");
-}
-
 export function containsOnlyNumbers(text: string) {
     return /^\d+$/.test(text);
 }
