@@ -2,49 +2,31 @@ import { describe, expect, it } from "vitest";
 
 import { Result } from "./utility";
 
-import {
-    removeWhiteSpace,
-    containsOnlyNumbers,
-    isMastercardLength,
-    textStartsWithMastercardDigits,
-    luhnCheck
-} from "./pan-helpers";
+import { panValidator } from "./validation";
 
-function validate(unvalidatedPan: string) {
-    let result = Result.ok(unvalidatedPan);
+type Validate = (unvalidatedPan: string) => Result<string>;
 
-    result = removeWhiteSpace(result);
-
-    result = containsOnlyNumbers(result);
-
-    result = isMastercardLength(result);
-
-    result = textStartsWithMastercardDigits(result);
-
-    result = luhnCheck(result);
-
-    return result;
-}
+const validate: Validate = panValidator
 
 describe("Valid PAN", () => {
     it("returns ok result", () => {
-        let pan = "5555 4444 3333 2226";
+        let pan = "5555444433332226";
 
         let result = validate(pan);
 
-        expect(result).toStrictEqual(Result.ok("5555444433332226"));
+        expect(result).toStrictEqual(Result.ok(pan));
     });
 });
 
 describe.each([
-    { pan: "ABCD 4444 3333 2226", expected: "PAN can only contain numbers" },
-    { pan: "55555 4444 3333 2226", expected: "PAN should be 16 digits" },
-    { pan: "555 4444 3333 2226", expected: "PAN should be 16 digits" },
-    { pan: "2220 4444 3333 2226", expected: "PAN is not a Mastercard" },
-    { pan: "2721 4444 3333 2226", expected: "PAN is not a Mastercard" },
-    { pan: "5055 4444 3333 2226", expected: "PAN is not a Mastercard" },
-    { pan: "5655 4444 3333 2226", expected: "PAN is not a Mastercard" },
-    { pan: "5555 4444 3333 2220", expected: "Invalid PAN" },
+    { pan: "ABCD444433332226", expected: "PAN can only contain numbers" },
+    { pan: "55555444433332226", expected: "PAN should be 16 digits" },
+    { pan: "555444433332226", expected: "PAN should be 16 digits" },
+    { pan: "2220444433332226", expected: "PAN is not a Mastercard" },
+    { pan: "2721444433332226", expected: "PAN is not a Mastercard" },
+    { pan: "5055444433332226", expected: "PAN is not a Mastercard" },
+    { pan: "5655444433332226", expected: "PAN is not a Mastercard" },
+    { pan: "5555444433332220", expected: "Invalid PAN" },
 ])("Invalid PAN", ({ pan, expected }) => {
     it("returns error result", () => {
         let result = validate(pan);

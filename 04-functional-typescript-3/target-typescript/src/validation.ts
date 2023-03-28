@@ -1,7 +1,4 @@
-import { Result } from "./utility";
-
-export const removeWhiteSpace =
-    Result.map((text: string) => text.replace(/\s+/g, ""));
+import { composeMany, Result } from "./utility";
 
 export function containsOnlyNumbers(text: string): Result<string> {
     if (/^\d+$/.test(text)) {
@@ -79,3 +76,14 @@ export function luhnCheck(text: string): Result<string> {
         return Result.error("Invalid PAN");
     }
 }
+
+const panValidators =
+    [
+        containsOnlyNumbers,
+        isMastercardLength,
+        textStartsWithMastercardDigits,
+        luhnCheck
+    ];
+
+export const panValidator =
+    Result.bindAll(panValidators);
